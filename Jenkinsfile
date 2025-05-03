@@ -1,48 +1,36 @@
-
 pipeline {
     agent any
-
     environment {
-        // Optional: Define environment variables if needed
-        BUILD_ENV = 'development'
+        ARTIFACTORY_URL = 'https://your-artifactory-instance'
+        ARTIFACTORY_REPO = 'libs-release-local'
     }
-
     stages {
         stage('Checkout') {
             steps {
-                // Automatically checks out the current branch
                 checkout scm
             }
         }
-
         stage('Build') {
             steps {
-                echo 'Building the project...'
-                sh './gradlew clean build'
+                script {
+                    sh './gradlew build'
+                }
             }
         }
-
         stage('Test') {
             steps {
-                echo 'Running tests...'
-                sh './gradlew test'
+                script {
+                    sh './gradlew test'
+                }
             }
         }
-
-        stage('Archive Artifacts') {
+        stage('Publish Artifact') {
             steps {
-                echo 'Archiving JAR files...'
-                archiveArtifacts artifacts: 'build/libs/*.jar', fingerprint: true
+                script {
+                    // Upload to Artifactory
+                    sh './gradlew uploadArchives'
+                }
             }
-        }
-    }
-
-    post {
-        success {
-            echo 'Build and tests succeeded.'
-        }
-        failure {
-            echo 'Build or tests failed.'
         }
     }
 }
